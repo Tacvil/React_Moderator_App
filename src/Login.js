@@ -1,17 +1,18 @@
-// Login.js
 import React, { useState } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore';
 import { db, auth } from './firebase';
-import TextField from '@mui/material/TextField'; // Импортируйте TextField из Material-UI
-import Button from '@mui/material/Button'; // Импортируйте Button из Material-UI
-import styles from './Login.module.css'; // Импорт стилей из модуля
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
+import styles from './Login.module.css';
+import { useAuth } from './AuthContext'; // Импортируем хук useAuth
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
+  const { setAuthStatus } = useAuth(); // Получаем функцию setAuthStatus из контекста аутентификации
 
   const handleEmailChange = (e) => setEmail(e.target.value);
   const handlePasswordChange = (e) => setPassword(e.target.value);
@@ -23,6 +24,7 @@ const Login = () => {
 
       if (userData && userData.role === 'moderator') {
         console.log('Пользователь - модератор');
+        setAuthStatus(true); // Устанавливаем статус аутентификации в true
         navigate('/home');
       } else {
         console.log('Пользователь не является модератором');

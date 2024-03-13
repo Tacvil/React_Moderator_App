@@ -4,8 +4,14 @@ import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import { getDocs, collection } from 'firebase/firestore';
 import { db } from './firebase';
+import { Link, Navigate } from 'react-router-dom';
+import { useAuth } from './AuthContext';
+import { useItem } from './ItemContext'; // Импортируем хук для использования контекста
 
 const Home = () => {
+  const { isLoggedIn } = useAuth(); // Получаем статус аутентификации из контекста
+  const { setItem } = useItem(); // Получаем функцию для установки данных item
+
   const [data, setData] = useState([]);
 
   useEffect(() => {
@@ -34,17 +40,22 @@ const Home = () => {
   };
 
   const sliderStyle = {
-    width: '400px', // Установите необходимую ширину слайдера
-    maxWidth: '100%', // Гарантирует, что слайдер не будет шире родительского контейнера
+    width: '400px',
+    maxWidth: '100%',
     marginLeft: '20px'
   };
 
   const imageStyle = {
-    width: '100%', // Занимает всю доступную ширину слайдера
-    height: 'auto', // Подстраивается под высоту, сохраняя пропорции
-    maxHeight: '400px', // Максимальная высота слайдера
-    objectFit: 'cover', // Заполнение слайдера без обрезки
+    width: '100%',
+    height: 'auto',
+    maxHeight: '400px',
+    objectFit: 'cover',
   };
+
+  // Если пользователь не аутентифицирован, перенаправляем его на страницу входа
+  if (!isLoggedIn) {
+    return <Navigate to="/" />;
+  }
 
   return (
     <div style={{ margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -72,6 +83,12 @@ const Home = () => {
             <div style={{ flex: '1', marginLeft: '10px' }}>
               <h3>{item.title}</h3>
               <p>{item.description}</p>
+              <Link 
+                to={{ pathname: `/annontiment/${item.uid}` }}
+                onClick={() => setItem(item)} // Устанавливаем данные item через контекст
+              >
+                View Details
+              </Link>
             </div>
           </div>
         );
