@@ -3,49 +3,71 @@ import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import { useItem } from './ItemContext'; // Импортируем контекст для item
+import axios from 'axios'; // Импортируем axios
+import { db } from './firebase'; // Импортируем объект db из файла firebase.js
+import { getDoc, doc } from 'firebase/firestore';
 
-
-// Функция для получения токена доступа
-async function getAccessToken(serviceAccount) {
-  try {
-
-  } catch (error) {
-    console.error('Error getting access token:', error);
-    throw error;
-  }
-}
 
 const Annontiment = () => {
   const { item } = useItem(); // Получаем item из контекста
-  const [serviceAccount, setServiceAccount] = useState(null); // Состояние для хранения содержимого файла JSON
-  const [accessToken, setAccessToken] = useState(null); // Состояние для хранения токена доступа
+  const [rejectReason, setRejectReason] = useState(''); // Состояние для хранения причины отклонения
 
-  // Функция для чтения файла JSON и получения токена доступа
-  const handleFileChange = async (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = async function(event) {
-        const content = event.target.result;
-        const parsedContent = JSON.parse(content);
-        setServiceAccount(parsedContent);
-        try {
-          const token = await getAccessToken(parsedContent);
-          setAccessToken(token);
-        } catch (error) {
-          console.error('Error getting access token:', error);
-        }
-      }
-      reader.readAsText(file);
+  const sendTokenAndNotificationToServer = async (title, body, token) => {
+    try {
+      const url = 'http://localhost:4000/notification';
+      const response = await axios.post(url, {
+        token: token,
+        title: title,
+        body: body
+      });
+      console.log('Response from server:', response.data);
+    } catch (error) {
+      console.error('Error sending token and notification:', error);
     }
   };
 
-  // Проверяем, есть ли данные в item
+  const handlePublish = async () => {
+    var title = "Объявление одобрено!";
+    var body = "body3";
+    if (item) {
+      const uid = item.uid;
+      console.log('uid =', uid);
+      const docRef = doc(db, 'users', uid); // Заменено на 'users'
+      const docSnapshot = await getDoc(docRef); // Заменено на getDoc
+      if (docSnapshot.exists()) {
+        const userData = docSnapshot.data();
+        const token = userData.token;
+        sendTokenAndNotificationToServer(title, body, token);
+        console.log('Publish clicked');
+      } else {
+        console.log('No such document!');
+      }
+    }
+  };
+
+  const handleReject = async () => {
+    var title = "Объявление отклонено!";
+    var body = rejectReason;
+    if (item) {
+      const uid = item.uid;
+      console.log('uid =', uid);
+      const docRef = doc(db, 'users', uid); // Заменено на 'users'
+      const docSnapshot = await getDoc(docRef); // Заменено на getDoc
+      if (docSnapshot.exists()) {
+        const userData = docSnapshot.data();
+        const token = userData.token;
+        sendTokenAndNotificationToServer(title, body, token);
+        console.log('Reject clicked. Reason:', rejectReason);
+      } else {
+        console.log('No such document!');
+      }
+    }
+  };
+
   if (!item) {
     return <p>No item found</p>;
   }
 
-  // Настройки карусели
   const settings = {
     dots: true,
     infinite: true,
@@ -55,40 +77,37 @@ const Annontiment = () => {
   };
 
   return (
-    <div style={{ display: 'flex' }}> {/* Обертка для размещения названия и описания справа */}
-      <div style={{ width: '400px', height: '400px' }}> {/* Пример фиксированных размеров */}
-        <Slider {...settings}>
-          <div>
-            <img src={item.mainImage} alt="Image 1" style={{ maxWidth: '100%', maxHeight: '100%' }} /> {/* Устанавливаем максимальные размеры */}
-          </div>
-          <div>
-            <img src={item.image2} alt="Image 2" style={{ maxWidth: '100%', maxHeight: '100%' }} /> {/* Устанавливаем максимальные размеры */}
-          </div>
-          <div>
-            <img src={item.image3} alt="Image 3" style={{ maxWidth: '100%', maxHeight: '100%' }} /> {/* Устанавливаем максимальные размеры */}
-          </div>
-        </Slider>
+    <div>
+      <div style={{ display: 'flex' }}>
+        <div style={{ width: '400px', height: '400px' }}>
+          <Slider {...settings}>
+            <div>
+              <img src={item.mainImage} alt="Image 1" style={{ maxWidth: '100%', maxHeight: '100%' }} />
+            </div>
+            <div>
+              <img src={item.image2} alt="Image 2" style={{ maxWidth: '100%', maxHeight: '100%' }} />
+            </div>
+            <div>
+              <img src={item.image3} alt="Image 3" style={{ maxWidth: '100%', maxHeight: '100%' }} />
+            </div>
+          </Slider>
+        </div>
+        <div style={{ marginLeft: '20px' }}>
+          <h3>{item.title}</h3>
+          <p>{item.description}</p>
+        </div>
       </div>
-      <div style={{ marginLeft: '20px' }}> {/* Отступ слева для размещения справа от слайдера */}
-        <h3>{item.title}</h3>
-        <p>{item.description}</p>
-        
-        {/* Поле для загрузки файла */}
-        <input type="file" onChange={handleFileChange} accept=".json" />
-
-        {/* Отображение содержимого файла и токена доступа */}
-        {serviceAccount && (
-          <div>
-            <h4>Service Account Key:</h4>
-            <pre>{JSON.stringify(serviceAccount, null, 2)}</pre>
-          </div>
-        )}
-        {accessToken && (
-          <div>
-            <h4>Access Token:</h4>
-            <pre>{accessToken}</pre>
-          </div>
-        )}
+      <div style={{ textAlign: 'center', marginTop: '20px' }}>
+        <input
+          type="text"
+          placeholder="Введите причину отклонения"
+          value={rejectReason}
+          onChange={(e) => setRejectReason(e.target.value)}
+        />
+      </div>
+      <div style={{ textAlign: 'center', marginTop: '20px' }}>
+        <button onClick={handlePublish}>ОПУБЛИКОВАТЬ</button>
+        <button onClick={handleReject}>ОТКЛОНИТЬ</button>
       </div>
     </div>
   );
