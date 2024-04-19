@@ -7,6 +7,11 @@ import { db } from './firebase';
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import { useItem } from './ItemContext'; // Импортируем хук для использования контекста
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
+import noImage from './no-image.jpg';
+
+var counter = 0;
 
 const Home = () => {
   const { isLoggedIn } = useAuth(); // Получаем статус аутентификации из контекста
@@ -30,6 +35,10 @@ const Home = () => {
 
     fetchData();
   }, []);
+
+  useEffect(() => {
+    console.log('Компонент отрендерился');
+  }); 
 
   const settings = {
     dots: true,
@@ -59,35 +68,97 @@ const Home = () => {
 
   return (
     <div style={{ margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      <h2>Successfully</h2>
-
       {data.map((item, index) => {
-        const images = [item.mainImage, item.image2, item.image3].filter(image => image && image.trim() !== '');
+        const images = [item.mainImage, item.image2, item.image3]
+          .filter(image => image && image.trim() !== '' && image.startsWith('http'));
+        const hasImages = images.length > 0;
 
+        // Заполняем массив изображений до трех элементов, если их меньше
+        const filledImages = [...images, ...Array(3 - images.length).fill(noImage)];
+
+        counter = counter + 1;
+        console.log(counter);
         return (
           <div key={index} style={{ display: 'flex', width: '100%', marginBottom: '20px' }}>
-            <Slider {...settings} style={sliderStyle}>
-              {images.length > 0 ? (
-                images.map((image, imageIndex) => (
-                  <div key={imageIndex}>
-                    <img src={image} alt={`Image ${imageIndex + 1}`} style={imageStyle} />
+            {hasImages ? (
+              <Slider {...settings} style={sliderStyle}>
+                {filledImages.map((image, imageIndex) => (
+                  <div key={`${item.key}_${imageIndex}`}>
+                    {console.log(image)};
+                    {image && image.startsWith('http') ? (
+                      <img src={image} alt={`Image ${imageIndex + 1}`} style={imageStyle} />
+                    ) : (
+                      <img src={noImage} alt={`No Image`} style={imageStyle} />
+                    )}
                   </div>
-                ))
-              ) : (
-                <div>
-                  <p>No image available</p>
-                </div>
-              )}
-            </Slider>
+                ))}
+              </Slider>
+            ) : (
+              <div style={sliderStyle}>
+                <img src={noImage} alt={`No Image`} style={imageStyle} />
+              </div>
+            )}
 
             <div style={{ flex: '1', marginLeft: '10px' }}>
-              <h3>{item.title}</h3>
-              <p>{item.description}</p>
-              <Link 
-                to={{ pathname: `/annontiment/${item.uid}` }}
-                onClick={() => setItem(item)} // Устанавливаем данные item через контекст
-              >
-                View Details
+              <TextField
+                label="Title"
+                value={item.title}
+                InputLabelProps={{ shrink: true }}
+                fullWidth
+                readOnly
+                multiline // Разрешаем многострочный ввод
+                InputProps={{
+                  style: {
+                    whiteSpace: 'pre-wrap' // Разрешаем переносы строк
+                  }
+                }}
+              />
+              <TextField
+                label="Category"
+                value={item.category}
+                InputLabelProps={{ shrink: true }}
+                fullWidth
+                readOnly
+                multiline // Разрешаем многострочный ввод
+                sx={{ marginTop: '10px' }}
+                InputProps={{
+                  style: {
+                    whiteSpace: 'pre-wrap' // Разрешаем переносы строк
+                  }
+                }}
+              />
+              <TextField
+                label="Time"
+                value={new Date(parseInt(item.time)).toLocaleString()}
+                InputLabelProps={{ shrink: true }}
+                fullWidth
+                readOnly
+                multiline
+                sx={{ marginTop: '10px' }}
+                InputProps={{
+                  style: {
+                    whiteSpace: 'pre-wrap'
+                  }
+                }}
+              />
+              <TextField
+                label="Address"
+                value={`${item.country}, ${item.city}, ${item.index}`}
+                InputLabelProps={{ shrink: true }}
+                fullWidth
+                readOnly
+                multiline
+                sx={{ marginTop: '10px' }}
+                InputProps={{
+                  style: {
+                    whiteSpace: 'pre-wrap'
+                  }
+                }}
+              />
+              <Link to={`/annontiment/${item.uid}`} onClick={() => setItem(item)}>
+                <Button type="submit" variant="contained" color="primary" sx={{ marginTop: '10px', width: '100%' }}>
+                  View Details
+                </Button>
               </Link>
             </div>
           </div>
@@ -95,6 +166,6 @@ const Home = () => {
       })}
     </div>
   );
-};
+}
 
 export default Home;

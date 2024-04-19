@@ -6,6 +6,10 @@ import { useItem } from './ItemContext'; // Импортируем контек�
 import axios from 'axios'; // Импортируем axios
 import { db } from './firebase'; // Импортируем объект db из файла firebase.js
 import { getDoc, doc } from 'firebase/firestore';
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
+import noImage from './no-image.jpg';
+
 
 
 const Annontiment = () => {
@@ -14,7 +18,7 @@ const Annontiment = () => {
 
   const sendTokenAndNotificationToServer = async (title, body, token) => {
     try {
-      const url = 'http://localhost:4000/notification';
+      const url = 'http://bulletin-board.online/notification';
       const response = await axios.post(url, {
         token: token,
         title: title,
@@ -43,6 +47,14 @@ const Annontiment = () => {
         console.log('No such document!');
       }
     }
+  };
+
+  const formatCurrency = (amount) => {
+    // Функция для форматирования числа как валюты
+    return new Intl.NumberFormat('ru-RU', {
+      style: 'currency',
+      currency: 'RUB'
+    }).format(amount);
   };
 
   const handleReject = async () => {
@@ -92,22 +104,142 @@ const Annontiment = () => {
             </div>
           </Slider>
         </div>
-        <div style={{ marginLeft: '20px' }}>
-          <h3>{item.title}</h3>
-          <p>{item.description}</p>
+        <div style={{ flex: '1', marginLeft: '10px' }}>
+          <TextField
+            label="Title"
+            value={item.title}
+            InputLabelProps={{ shrink: true }}
+            fullWidth
+            readOnly
+            multiline // Разрешаем многострочный ввод
+            InputProps={{
+              style: {
+                whiteSpace: 'pre-wrap' // Разрешаем переносы строк
+              }
+            }}
+          />
+          <TextField
+            label="Category"
+            value={item.category}
+            InputLabelProps={{ shrink: true }}
+            fullWidth
+            readOnly
+            multiline // Разрешаем многострочный ввод
+            sx={{ marginTop: '10px' }}
+            InputProps={{
+              style: {
+                whiteSpace: 'pre-wrap' // Разрешаем переносы строк
+              }
+            }}
+          />
+          <TextField
+            label="Time"
+            value={new Date(parseInt(item.time)).toLocaleString()}
+            InputLabelProps={{ shrink: true }}
+            fullWidth
+            readOnly
+            multiline
+            sx={{ marginTop: '10px' }}
+            InputProps={{
+              style: {
+                whiteSpace: 'pre-wrap'
+              }
+            }}
+          />
+          <TextField
+            label="Address"
+            value={`${item.country}, ${item.city}, ${item.index}`}
+            InputLabelProps={{ shrink: true }}
+            fullWidth
+            readOnly
+            multiline
+            sx={{ marginTop: '10px' }}
+            InputProps={{
+              style: {
+                whiteSpace: 'pre-wrap'
+              }
+            }}
+          />
+          <TextField
+            label="Telephone number"
+            value={item.tel}
+            InputLabelProps={{ shrink: true }}
+            fullWidth
+            readOnly
+            multiline // Разрешаем многострочный ввод
+            sx={{ marginTop: '10px' }}
+            InputProps={{
+              style: {
+                whiteSpace: 'pre-wrap' // Разрешаем переносы строк
+              }
+            }}
+          />
+          <TextField
+            label="Email address"
+            value={item.email}
+            InputLabelProps={{ shrink: true }}
+            fullWidth
+            readOnly
+            multiline // Разрешаем многострочный ввод
+            sx={{ marginTop: '10px' }}
+            InputProps={{
+              style: {
+                whiteSpace: 'pre-wrap' // Разрешаем переносы строк
+              }
+            }}
+          />
+          <TextField
+            label="Description"
+            value={item.description}
+            InputLabelProps={{ shrink: true }}
+            fullWidth
+            readOnly
+            multiline // Разрешаем многострочный ввод
+            sx={{ marginTop: '10px' }}
+            InputProps={{
+              style: {
+                whiteSpace: 'pre-wrap' // Разрешаем переносы строк
+              }
+            }}
+          />
+          <TextField
+            label="Price"
+            value={formatCurrency(item.price)}
+            InputLabelProps={{ shrink: true }}
+            fullWidth
+            readOnly
+            multiline
+            sx={{ marginTop: '10px' }}
+            InputProps={{
+              style: {
+                whiteSpace: 'pre-wrap'
+              }
+            }}
+          />
         </div>
       </div>
       <div style={{ textAlign: 'center', marginTop: '20px' }}>
-        <input
+        {/* <input
           type="text"
           placeholder="Введите причину отклонения"
           value={rejectReason}
           onChange={(e) => setRejectReason(e.target.value)}
+        /> */}
+        <TextField
+          label="Reason for rejection"
+          type="text"
+          placeholder="Enter the reason for rejection if needed"
+          InputLabelProps={{ shrink: true }}
+          value={rejectReason}
+          onChange={(e) => setRejectReason(e.target.value)}
+          fullWidth
+          required
+          sx={{ marginTop: '10px' }}
         />
       </div>
       <div style={{ textAlign: 'center', marginTop: '20px' }}>
-        <button onClick={handlePublish}>ОПУБЛИКОВАТЬ</button>
-        <button onClick={handleReject}>ОТКЛОНИТЬ</button>
+        <Button type="submit" variant="contained" color="primary" sx={{ width: '100%' }} onClick={handlePublish}>PUBLISH</Button>
+        <Button type="submit" variant="contained" color="primary" sx={{ marginTop: '10px', width: '100%' }} onClick={handleReject}>REJECT</Button>
       </div>
     </div>
   );
