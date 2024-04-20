@@ -31,8 +31,15 @@ const Annontiment = () => {
   };
 
   const handlePublish = async () => {
-    var title = "Объявление одобрено!";
-    var body = "body3";
+    var title = "🎉 Объявление одобрено! 🎉";
+    var body = `Здравствуйте!
+    
+    Ваше объявление было успешно одобрено и опубликовано на нашей доске объявлений.
+    
+    Мы рады приветствовать вашу публикацию на нашем ресурсе. Надеемся, что она принесет вам полезные результаты.
+    
+    С наилучшими пожеланиями,
+    Команда Администраторов`;
     if (item) {
       const uid = item.uid;
       console.log('uid =', uid);
@@ -88,20 +95,23 @@ const Annontiment = () => {
     slidesToScroll: 1
   };
 
+  const images = [item.mainImage, item.image2, item.image3]
+    .filter(image => image && image.trim() !== '' && image.startsWith('http'))
+    .map(image => image.startsWith('http') ? image : noImage);
+    
+  // Заполняем массив изображений до трех элементов, если их меньше
+  const filledImages = [...images, ...Array(3 - images.length).fill(noImage)];
+
   return (
     <div>
       <div style={{ display: 'flex' }}>
         <div style={{ width: '400px', height: '400px' }}>
           <Slider {...settings}>
-            <div>
-              <img src={item.mainImage} alt="Image 1" style={{ maxWidth: '100%', maxHeight: '100%' }} />
-            </div>
-            <div>
-              <img src={item.image2} alt="Image 2" style={{ maxWidth: '100%', maxHeight: '100%' }} />
-            </div>
-            <div>
-              <img src={item.image3} alt="Image 3" style={{ maxWidth: '100%', maxHeight: '100%' }} />
-            </div>
+            {filledImages.map((image, index) => (
+              <div key={index}>
+                <img src={image} alt={`Image ${index + 1}`} style={{ maxWidth: '100%', maxHeight: '100%' }} />
+              </div>
+            ))}
           </Slider>
         </div>
         <div style={{ flex: '1', marginLeft: '10px' }}>
