@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
-import { getDocs, collection } from 'firebase/firestore';
+import { getDocs, collection, where, query } from 'firebase/firestore';
 import { db } from './firebase';
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
@@ -22,7 +22,11 @@ const Home = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, 'main'));
+        // Создаем запрос к коллекции "main" с фильтром по полю "published"
+        const q = query(collection(db, 'main'), where('published', '==', false));
+        
+        // Получаем документы, соответствующие запросу
+        const querySnapshot = await getDocs(q);
         const items = [];
         querySnapshot.forEach((doc) => {
           items.push(doc.data());

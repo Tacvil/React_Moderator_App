@@ -5,7 +5,7 @@ import 'slick-carousel/slick/slick-theme.css';
 import { useItem } from './ItemContext'; // Импортируем контекст для item
 import axios from 'axios'; // Импортируем axios
 import { db } from './firebase'; // Импортируем объект db из файла firebase.js
-import { getDoc, doc } from 'firebase/firestore';
+import { getDoc, doc, where, query, updateDoc } from 'firebase/firestore';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import noImage from './no-image.jpg';
@@ -42,9 +42,20 @@ const Annontiment = () => {
     Команда Администраторов`;
     if (item) {
       const uid = item.uid;
+      const key = item.key;
       console.log('uid =', uid);
+      console.log('key =', key);
       const docRef = doc(db, 'users', uid); // Заменено на 'users'
       const docSnapshot = await getDoc(docRef); // Заменено на getDoc
+
+      const docRefMain = doc(db, 'main', key)
+      const docSnapshotMain = await getDoc(docRefMain); // Заменено на getDoc
+
+      if (docSnapshotMain.exists) {
+        // Обновляем поле "published" в документе на true
+        await updateDoc(docRefMain, { published: true }); // Используйте updateDoc для обновления документа
+      }
+
       if (docSnapshot.exists()) {
         const userData = docSnapshot.data();
         const token = userData.token;
